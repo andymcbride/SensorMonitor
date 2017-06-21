@@ -9,6 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import ConfigParser
 from Utils import Utils
 from random import randrange
+import pymsql
 
 
 logger = ''
@@ -62,6 +63,7 @@ def get_temperature_humidity(pin):
         logger.error("Got NONE value for humidity on pin {}".format(pin))
     logger.debug("Temperature: {} Humidity: {}".format(temperature, humidity))
     return temperature, humidity
+
 
 def get_moisture(pin):
     global logger
