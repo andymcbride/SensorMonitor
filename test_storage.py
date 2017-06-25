@@ -29,25 +29,31 @@ class MyTestCase(unittest.TestCase):
 
     def test_create_sensor(self):
         self.storage.initialize_tables()
-        self.storage.create_sensor('Test', 'Temp')
+        self.storage.create_sensor_if_not_exists('Test', 'Temp')
 
     def test_create_sensor_fail(self):
         self.storage.initialize_tables()
         with self.assertRaises(IntegrityError):
-            self.storage.create_sensor(None, None)
+            self.storage.create_sensor_if_not_exists(None, None)
 
     def test_get_sensor_id(self):
         self.storage.initialize_tables()
-        self.storage.create_sensor('real', 'test')
-        row_id = self.storage.get_id('real')
-        self.assertNotEqual(row_id, None)
-        self.assertEqual(row_id, 1)
+        sensor_id = self.storage.create_sensor_if_not_exists('real', 'test')
+        self.assertNotEqual(sensor_id, None)
+        self.assertEqual(sensor_id, 1)
 
     def test_get_sensor_id_fail(self):
         self.storage.initialize_tables()
         with self.assertRaises(ValueError):
-            id = self.storage.get_id('FAKE')
+            sensor_id = self.storage.get_id('FAKE')
 
+    def test_save_sensor_data(self):
+        value = {'temperature': 90, 'humidity': 60}
+        self.storage.initialize_tables()
+        sensor_id = self.storage.create_sensor_if_not_exists('real', 'test')
+        self.storage.insert_sensor_data(sensor_id, value)
+        result = self.storage.get_latest_value(sensor_id)
+        self.assertEqual(value, result)
 
 if __name__ == '__main__':
     unittest.main()

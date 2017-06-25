@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 
 class Storage(object):
@@ -7,13 +8,20 @@ class Storage(object):
         self.filename = filename
         self.conn = sqlite3.connect(filename)
 
-    def create_sensor(self, name, sensor_type):
+    def create_sensor_if_not_exists(self, name, sensor_type):
         try:
             c = self.conn.cursor()
+            try:
+                sensor_id = self.get_id('name')
+                if sensor_id is not None:
+                    return sensor_id
+            except:
+                pass
             c.execute("insert into sensors(name, type) values(?, ?)", (name, sensor_type))
             self.conn.commit()
             if c.rowcount is not 1:
                 raise IOError("Unable to create sensor")
+            return c.lastrowid
         except:
             raise
 
@@ -26,7 +34,18 @@ class Storage(object):
         return row[0]
 
     def insert_sensor_data(self, sensor_id, value):
-        pass
+        json_value = json.dumps(value)
+        c = self.conn.cursor()
+        c.execute("insert into data(sensor_id, value) VALUES (?, ?)", (sensor_id, json_value))
+        self.conn.commit()
+
+    def get_latest_value(self, sensor_id):
+        c = self.conn.cursor()
+        c.execute("select value from data where sensor_id = ? order by timestamp DESC limit 1", (sensor_id,))
+        row = c.fetchone()
+        if row is None:
+            raise ValueError("No data for sensor id: {}".format(sensor_id))
+        return json.loads(row[0])
 
     def table_exists(self,table):
         c = self.conn.cursor()
