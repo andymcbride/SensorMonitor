@@ -1,5 +1,6 @@
 import sqlite3
 import json
+from sensor import SensorData
 
 
 class Storage(object):
@@ -33,10 +34,10 @@ class Storage(object):
             raise ValueError('No such sensor found')
         return row[0]
 
-    def insert_sensor_data(self, sensor_id, value):
-        json_value = json.dumps(value)
+    def insert_sensor_data(self, sensor_data):
+        json_value = json.dumps(sensor_data.get_values())
         c = self.conn.cursor()
-        c.execute("insert into data(sensor_id, value) VALUES (?, ?)", (sensor_id, json_value))
+        c.execute("insert into data(sensor_id, value) VALUES (?, ?)", (sensor_data.sensor_id, json_value))
         self.conn.commit()
 
     def get_latest_value(self, sensor_id):

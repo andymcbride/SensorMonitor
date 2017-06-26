@@ -1,5 +1,6 @@
 import unittest
 from storage import Storage
+from sensor import SensorData
 from pathlib2 import Path
 from sqlite3 import IntegrityError
 
@@ -48,10 +49,11 @@ class MyTestCase(unittest.TestCase):
             sensor_id = self.storage.get_id('FAKE')
 
     def test_save_sensor_data(self):
-        value = {'temperature': 90, 'humidity': 60}
         self.storage.initialize_tables()
         sensor_id = self.storage.create_sensor_if_not_exists('real', 'test')
-        self.storage.insert_sensor_data(sensor_id, value)
+        value = SensorData(sensor_id=sensor_id)
+        value.add_value({'temperature': 90, 'humidity': 60})
+        self.storage.insert_sensor_data(value)
         result = self.storage.get_latest_value(sensor_id)
         self.assertEqual(value, result)
 
